@@ -1,5 +1,6 @@
 package com.example.rajawalivuforiaexample;
 
+import java.io.Console;
 import java.io.ObjectInputStream;
 import java.util.zip.GZIPInputStream;
 
@@ -13,21 +14,34 @@ import rajawali.lights.DirectionalLight;
 import rajawali.materials.Material;
 import rajawali.materials.methods.DiffuseMethod;
 import rajawali.materials.methods.SpecularMethod;
+import rajawali.materials.textures.ATexture.TextureException;
+import rajawali.materials.textures.ATexture.TextureType;
 import rajawali.materials.textures.Texture;
 import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
+import rajawali.math.vector.Vector3.Axis;
 import rajawali.parser.md5.LoaderMD5Anim;
 import rajawali.parser.md5.LoaderMD5Mesh;
+import rajawali.primitives.Cube;
+import rajawali.primitives.Plane;
+import rajawali.util.ObjectColorPicker;
+import rajawali.util.OnObjectPickedListener;
 import rajawali.util.RajLog;
 import rajawali.vuforia.RajawaliVuforiaRenderer;
+import android.R.bool;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 
-public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
+public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer implements OnObjectPickedListener {
 	private DirectionalLight mLight;
 	private SkeletalAnimationObject3D mBob;
 	private Object3D mF22;
 	private Object3D mAndroid;
+	public Object3D card;
 	private RajawaliVuforiaExampleActivity activity;
+	private ObjectColorPicker mPicker;
 
 	public RajawaliVuforiaExampleRenderer(Context context) {
 		super(context);
@@ -41,7 +55,28 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		
 		getCurrentScene().addLight(mLight);
 		
-		try {
+		try {			
+			mPicker = new ObjectColorPicker(this);
+		    mPicker.setOnObjectPickedListener(this);
+			//
+			// -- Load Card 
+			//card = new Cube(100.0f);
+			card = new Plane(100f, 100f, 1, 1, Axis.Z);
+			card.setDoubleSided(true);
+			//card.setColor(0x9900ff);
+			card.setRotX(45);
+			card.setRotY(45);
+			card.setX(-5f);
+			card.setY(5f);
+			getCurrentScene().addChild(card);
+	
+			Material material = new Material();
+			material.addTexture(new Texture("cardfront", R.drawable.tarjeta_front));			
+			//material.addTexture(new Texture("cardfront", R.drawable.tarjeta_back));
+			card.setMaterial(material);
+			card.setVisible(false);
+			mPicker.registerObject(card);
+			
 			//
 			// -- Load Bob (model by Katsbits
 			// http://www.katsbits.com/download/models/)
@@ -79,7 +114,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 
 			mF22 = new Object3D(serializedObj);
 			mF22.setScale(30);
-			addChild(mF22);
+			getCurrentScene().addChild(mF22);
 			
 			Material f22Material = new Material();
 			f22Material.enableLighting(true);
@@ -102,7 +137,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			
 			mAndroid = new Object3D(serializedObj);
 			mAndroid.setScale(14);
-			addChild(mAndroid);
+			getCurrentScene().addChild(mAndroid);
 			
 			Material androidMaterial = new Material();
 			androidMaterial.enableLighting(true);
@@ -120,9 +155,12 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 			Quaternion orientation) {
 		
 		if (markerId == 0) {
-			mBob.setVisible(true);
-			mBob.setPosition(position);
-			mBob.setOrientation(orientation);
+//			mBob.setVisible(true);
+//			mBob.setPosition(position);
+//			mBob.setOrientation(orientation);
+			card.setVisible(true);
+			card.setPosition(position);
+			card.setOrientation(orientation);
 		} else if (markerId == 1) {
 			mAndroid.setVisible(true);
 			mAndroid.setPosition(position);
@@ -158,6 +196,7 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		mBob.setVisible(false);
 		mF22.setVisible(false);
 		mAndroid.setVisible(false);
+		card.setVisible(false);
 		
 		super.onDrawFrame(glUnused);
 		
@@ -165,5 +204,25 @@ public class RajawaliVuforiaExampleRenderer extends RajawaliVuforiaRenderer {
 		{
 			activity.showStartScanButton();
 		}
+	}
+
+	@Override
+	public void onObjectPicked(Object3D object) {
+		Log.d("onObjectPicked", "started!");		
+		Log.d("onObjectPicked", String.valueOf(card.isVisible()));
+		if(card.isVisible()) {		    	  								
+			try {
+				Material material = card.getMaterial();
+				material.removeTexture(new Texture("cardfront", R.drawable.tarjeta_front));
+				material.addTexture(new Texture("cardback", R.drawable.tarjeta_back));					
+				card.setMaterial(material);
+			} catch (TextureException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void getObjectAt(float x, float y) {
+	    mPicker.getObjectAt(x, y);
 	}
 }

@@ -405,6 +405,11 @@ public abstract class RajawaliVuforiaActivity extends RajawaliActivity {
     protected void initRajawali()
     {
     	createSurfaceView();
+    	onInitrajawaliFinishedOk();
+    }
+        
+    protected void onInitrajawaliFinishedOk() {
+    	
     }
     
     protected void useCloudRecognition(boolean value)

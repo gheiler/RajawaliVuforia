@@ -18,7 +18,10 @@ import rajawali.math.Quaternion;
 import rajawali.math.vector.Vector3;
 import rajawali.parser.md5.LoaderMD5Anim;
 import rajawali.parser.md5.LoaderMD5Mesh;
+import rajawali.primitives.Plane;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 public class RajawaliVuforiaVRGlassesExampleRenderer extends
 		RajawaliVuforiaSideBySideRenderer {
@@ -26,7 +29,8 @@ public class RajawaliVuforiaVRGlassesExampleRenderer extends
 	private SkeletalAnimationObject3D mBob;
 	private Object3D mF22;
 	private Object3D mAndroid;
-
+	private Object3D card;	
+	
 	public RajawaliVuforiaVRGlassesExampleRenderer(Context context) {
 		super(context);
 	}
@@ -40,6 +44,25 @@ public class RajawaliVuforiaVRGlassesExampleRenderer extends
 		getCurrentScene().addLight(mLight);
 
 		try {
+			
+			//
+			// -- Load Card 
+			//
+			
+			Bitmap bmCardFront = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.tarjeta_front);
+			Bitmap bmCardBack = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.tarjeta_back);
+			Texture frontCardTexture = new Texture("card-front", bmCardFront);
+			Texture backCardTexture = new Texture("card-back", bmCardFront);
+			Material material = new Material();
+			material.addTexture(frontCardTexture);
+			material.addTexture(backCardTexture);
+			
+			card = new Plane(.7f, .7f, 1, 1);
+			//card.setColor(0x9900ff);
+			card.setMaterial(material);
+			card.setY(-.5f);
+			card.setDoubleSided(true);
+			
 			//
 			// -- Load Bob (model by Katsbits
 			// http://www.katsbits.com/download/models/)
@@ -77,7 +100,7 @@ public class RajawaliVuforiaVRGlassesExampleRenderer extends
 
 			mF22 = new Object3D(serializedObj);
 			mF22.setScale(30);
-			addChild(mF22);
+			getCurrentScene().addChild(mF22);
 			
 			Material f22Material = new Material();
 			f22Material.enableLighting(true);
@@ -99,7 +122,7 @@ public class RajawaliVuforiaVRGlassesExampleRenderer extends
 			
 			mAndroid = new Object3D(serializedObj);
 			mAndroid.setScale(14);
-			addChild(mAndroid);
+			getCurrentScene().addChild(mAndroid);
 			
 			Material androidMaterial = new Material();
 			androidMaterial.enableLighting(true);
@@ -107,6 +130,8 @@ public class RajawaliVuforiaVRGlassesExampleRenderer extends
 			androidMaterial.setSpecularMethod(new SpecularMethod.Phong());
 			mAndroid.setColor(0x00dd00);
 			mAndroid.setMaterial(androidMaterial);
+			
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -118,9 +143,12 @@ public class RajawaliVuforiaVRGlassesExampleRenderer extends
 	protected void foundFrameMarker(int markerId, Vector3 position,
 			Quaternion orientation) {
 		if (markerId == 0) {
-			mBob.setVisible(true);
-			mBob.setPosition(position);
-			mBob.setOrientation(orientation);
+//			mBob.setVisible(true);
+//			mBob.setPosition(position);
+//			mBob.setOrientation(orientation);
+			card.setVisible(true);
+			card.setPosition(position);
+			card.setOrientation(orientation);
 		} else if (markerId == 1) {
 			mAndroid.setVisible(true);
 			mAndroid.setPosition(position);
